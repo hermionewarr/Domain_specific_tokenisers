@@ -91,3 +91,17 @@ Set these in `paths.env` only if you want the dataset-specific clinical scores.
 - MetaMap and RadGraph are used by `python scribe/ouh_clinical_metrics_test.py RUN_NAME`. MetaMap needs `SCRIBE_METAMAP_DIR`.
 
 BLEU, METEOR, and ROUGE do not need those tools. NLTK will try to download `punkt_tab` the first time the evaluation module is imported.
+
+## Cite
+
+If you used this codebase, please cite our paper:
+
+```bash
+@InProceedings{Warr_2026_tokenise,
+author="Warr, Hermione and Xu, Wentian and Anthony, Harry and Ibrahim, Yasin and McGowan, Daniel R. and Kamnitsas, Konstantinos",
+editor="Nguyen, Hien Van and Awasthi, Akash and Patel, Vishal M. and Le, Ngan and Zhou, Yuyin and Liu, Sheng and Zhou, S. Kevin",
+title="Specialised or Generic? Tokenization Choices for Radiology Language Models",
+booktitle="Emerging LLM/LMM Applications in Medical Imaging", year="2026",
+publisher="Springer Nature Switzerland", address="Cham", pages="62--70", isbn="978-3-032-07502-4"
+}
+```
