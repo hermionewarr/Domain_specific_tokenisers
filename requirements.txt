@@ -1,0 +1,12 @@
+torch
+transformers>=4.48
+tokenizers
+datasets
+pandas
+numpy
+nltk
+rouge-score
+tqdm
+wandb
+scikit-learn
+sentencepiece
