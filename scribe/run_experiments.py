@@ -9,8 +9,7 @@ starting point used for each dataset.
 
 vocab_size for the domain tokenisers is the realised vocabulary after the
 frequency cutoff, not the 30,000 cap passed to training. If you retrain, set
-it to the size printed by vocab_training/CreateVocab.py. The BPE 1-1 runs load
-the folder whose name ends in _1-1_V1.
+it to the size printed by vocab_training/CreateVocab.py.
 """
 
 import argparse
@@ -51,9 +50,8 @@ SPLITS = {
     },
 }
 
-# Realised sizes of the train-split, no-individual-digit domain vocabularies.
+# Realised sizes of the train-split, no-individual-digit domain BPE vocabularies.
 DOMAIN_BPE = {"ouh": 10987, "MIMIC": 9061, "ct-rate": 9296}
-DOMAIN_WP = {"ouh": 12065, "MIMIC": 10053, "ct-rate": 10043}
 
 
 def _base(name, tokeniser, dataset):
@@ -76,24 +74,9 @@ def paper_experiments():
     experiments = []
     for dataset in SPLITS:
         experiments.append({**_base("bpe", "PTCTBPE", dataset), "vocab_size": DOMAIN_BPE[dataset]})
-        experiments.append({**_base("wp", "PTCTWP", dataset), "vocab_size": DOMAIN_WP[dataset]})
         experiments.append({**_base("gpt2", "gpt2", dataset), "lr": 1e-5, "vocab_size": 50257})
         experiments.append({**_base("gpt4", "gpt4", dataset), "lr": 1e-5, "vocab_size": 100000})
-        experiments.append({**_base("pubmedbert", "pubmedbert", dataset), "vocab_size": 30522})
-        experiments.append({**_base("biomedlm", "BioMedLM", dataset), "vocab_size": 28896})
-        for size in (10000, 30000, 28896):
-            experiments.append({**_base(f"pubmed_bpe_{size}", "PubmedBPE", dataset), "vocab_size": size})
-        for size in (10000, 30000):
-            experiments.append({**_base(f"pubmed_wp_{size}", "PubmedWP", dataset), "vocab_size": size})
-        for tokeniser, label in (
-            ("Combined_1-3", "bpe_combined_1-3"),
-            ("Combined_1-1", "bpe_combined_1-1"),
-            ("Combined_3-1", "bpe_combined_3-1"),
-            ("WPCombined_1-3", "wp_combined_1-3"),
-            ("WPCombined_1-1", "wp_combined_1-1"),
-            ("WPCombined_3-1", "wp_combined_3-1"),
-        ):
-            experiments.append({**_base(label, tokeniser, dataset), "vocab_size": 30000})
+        experiments.append({**_base("pubmed_bpe_30000", "PubmedBPE", dataset), "vocab_size": 30000})
     return experiments
 
 

@@ -38,20 +38,16 @@ python vocab_training/run_create_vocabs.py --only bpe_MIMIC
 
 What that trains:
 
-- A findings-plus-conclusion text dump for each dataset (`data/text/ouhfcreport_text.txt`, `MIMICfcreport_text.txt`, `ct-ratefcreport_text.txt`). Combined tokenisers read these files.
-- Domain BPE and WordPiece on the training split, with whitespace and punctuation pre-tokenisation and no per-digit split. The cap is 30,000 and the minimum frequency is 3. The saved folder uses the realised size, for example `vocabs/transformer_tokeniser_bpe9061MIMICfc_train_no_digit`.
-- PubMed BPE and WordPiece at 10,000 and 30,000, plus a byte-level PubMed BPE at 28,896 (`transformer_tokeniser_bpe28896pubmed_byte`).
-- PubMed mixed with each radiology corpus at 1:3, 1:1, and 3:1, for both BPE and WordPiece, cap 30,000.
+- Domain BPE on the training split of OUH, MIMIC, and CT-RATE, with whitespace and punctuation pre-tokenisation and no per-digit split. The cap is 30,000 and the minimum frequency is 3. The saved folder uses the realised size, for example `vocabs/transformer_tokeniser_bpe9061MIMICfc_train_no_digit`.
+- PubMed BPE at 30,000, trained on the abstracts JSONL.
 
-The BPE 1-1 language-model runs load a folder whose name ends in `_1-1_V1`. Retraining writes the name without `_V1`. Rename that folder before those runs.
+`run_create_vocabs.py` has one commented WordPiece example (MIMIC, same settings as BPE). Uncomment that job to train it. GPT-2 and GPT-4 are loaded from Hugging Face and are not trained here.
 
 One dataset at a time:
 
 ```bash
 python vocab_training/CreateVocab.py --data_source MIMIC --tok_type bpe --extra_info fc_train --pre_tok no_digit
 python vocab_training/CreatePubMedVocab.py --tok_type bpe --vocab_size 30000
-python vocab_training/CreatePubMedVocab.py --tok_type bpe --vocab_size 28896 --byte_level
-python vocab_training/CreatePubMedVocabCombinedDomainSpecific.py --tok_type bpe --vocab_size 30000 --domain_specifc_data_source MIMIC --ratio 50
 ```
 
 ## Train and evaluate the language model
@@ -70,13 +66,11 @@ While training, `scribe/main.py` sets the context length and batch size from the
 
 The comparisons, each on OUH, MIMIC, and CT-RATE:
 
-- Domain BPE and WordPiece trained on that dataset's training reports
+- Domain BPE trained on that dataset's training reports
 - GPT-2 and GPT-4 tokenisers
-- PubMedBERT and BioMedLM tokenisers
-- PubMed BPE (10k, 30k, and the 28,896 byte-level vocabulary) and PubMed WordPiece (10k, 30k)
-- PubMed mixed with the domain corpus at 1:3, 1:1, and 3:1, for BPE and WordPiece
+- PubMed BPE at 30,000, trained on the abstracts
 
-Domain `vocab_size` values in `scribe/run_experiments.py` are the realised sizes from the paper's train-split vocabularies (OUH BPE 10987, MIMIC BPE 9061, CT-RATE BPE 9296, and the WordPiece sizes in that file). After retraining, use the size printed by `CreateVocab.py`.
+Domain `vocab_size` values in `scribe/run_experiments.py` are the realised sizes from the train-split BPE vocabularies (OUH 10987, MIMIC 9061, CT-RATE 9296). After retraining, use the size printed by `CreateVocab.py`.
 
 Checkpoints and metric tables go to `runs/<run_name>/`.
 

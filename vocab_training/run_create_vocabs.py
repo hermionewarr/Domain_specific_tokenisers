@@ -1,12 +1,8 @@
-"""Train the tokenisers used by the paper experiments.
+"""Train the BPE tokenisers used by the paper experiments.
 
-Prints commands unless --run is passed. Domain training writes a text dump
-under the text directory. Combined training reads the full findings-plus-
-conclusion dumps ({dataset}fcreport_text.txt), so those dumps are created first.
-
-The domain vocabulary cap is 30,000. The folder name uses the realised size.
-Copy or rename a retrained BPE 1-1 folder so its name ends in _1-1_V1 before
-the language-model runs that load Combined_1-1.
+Prints commands unless --run is passed. Domain training uses the training-split
+findings and conclusions. The vocabulary cap is 30,000 and the saved folder
+uses the realised size after the frequency cutoff.
 """
 
 import argparse
@@ -18,60 +14,33 @@ HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parent
 DOMAIN = HERE / "CreateVocab.py"
 PUBMED = HERE / "CreatePubMedVocab.py"
-COMBINED = HERE / "CreatePubMedVocabCombinedDomainSpecific.py"
 
 DATASETS = ("ouh", "MIMIC", "ct-rate")
-# ratio is the percentage of radiology text. 25, 50, and 75 are the 1-3, 1-1, and 3-1 mixes.
-RATIOS = (25, 50, 75)
+
+
+def _domain_job(data_source, tok_type):
+    return (
+        f"{tok_type}_{data_source}",
+        [
+            sys.executable, str(DOMAIN),
+            "--data_source", data_source,
+            "--tok_type", tok_type,
+            "--vocab_size", "30000",
+            "--min_freq", "3",
+            "--extra_info", "fc_train",
+            "--pre_tok", "no_digit",
+        ],
+    )
 
 
 def commands():
-    jobs = []
-    for data_source in DATASETS:
-        jobs.append((
-            f"text_{data_source}",
-            [sys.executable, str(DOMAIN), "--data_source", data_source, "--extra_info", "fc", "--dump_text_only"],
-        ))
-        for tok_type in ("bpe", "wp"):
-            jobs.append((
-                f"{tok_type}_{data_source}",
-                [
-                    sys.executable, str(DOMAIN),
-                    "--data_source", data_source,
-                    "--tok_type", tok_type,
-                    "--vocab_size", "30000",
-                    "--min_freq", "3",
-                    "--extra_info", "fc_train",
-                    "--pre_tok", "no_digit",
-                ],
-            ))
-    for tok_type, size, byte in (
-        ("bpe", "10000", False),
-        ("wp", "10000", False),
-        ("bpe", "30000", False),
-        ("wp", "30000", False),
-        ("bpe", "28896", True),
-    ):
-        cmd = [sys.executable, str(PUBMED), "--tok_type", tok_type, "--vocab_size", size, "--min_freq", "5"]
-        if byte:
-            cmd.append("--byte_level")
-        jobs.append((f"pubmed_{tok_type}_{size}{'_byte' if byte else ''}", cmd))
-    for data_source in DATASETS:
-        for tok_type in ("bpe", "wp"):
-            for ratio in RATIOS:
-                jobs.append((
-                    f"{tok_type}_{data_source}_pubmed_{ratio}",
-                    [
-                        sys.executable, str(COMBINED),
-                        "--run", f"{tok_type}_{data_source}_{ratio}",
-                        "--tok_type", tok_type,
-                        "--vocab_size", "30000",
-                        "--min_freq", "5",
-                        "--domain_specifc_data_source", data_source,
-                        "--ratio", str(ratio),
-                        "--data_source", "pubmed",
-                    ],
-                ))
+    jobs = [_domain_job(data_source, "bpe") for data_source in DATASETS]
+    # Example WordPiece run. Uncomment to train it the same way as the BPE jobs.
+    # jobs.append(_domain_job("MIMIC", "wp"))
+    jobs.append((
+        "pubmed_bpe_30000",
+        [sys.executable, str(PUBMED), "--tok_type", "bpe", "--vocab_size", "30000", "--min_freq", "5"],
+    ))
     return jobs
 
 
