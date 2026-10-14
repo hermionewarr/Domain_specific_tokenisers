@@ -1,6 +1,21 @@
 # Specialised or Generic? Effect of Vocabulary and Tokenisation for Radiology Language Models
 
-Code to train the tokenisers and the radiology language-model experiments from the paper. Report text and trained tokeniser files are not in this repository. Tokeniser folders will be released separately; point `SCRIBE_VOCAB_DIR` at that download.
+Code to train the tokenisers and the radiology language-model experiments from the [paper](https://arxiv.org/pdf/2508.09952). Report text and trained tokeniser files are not in this repository. Tokeniser folders released separately; point `SCRIBE_VOCAB_DIR` at that download.
+
+## If you just want the trained tokenisers
+
+They are uploaded to hugging face: [hermionegrace/radiology-bpe-tokenizers](https://huggingface.co/hermionegrace/radiology-bpe-tokenizers)
+
+Example use:
+```python
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained(
+    "hermionewarr/radiology-bpe-tokenizers",
+    subfolder="transformer_tokeniser_bpe9061MIMICfc_train_no_digit",
+)
+```
+fc = findings conclusion, train split, no digits means numbers aren't broken down pre tokenisation.
 
 ## Setup
 
